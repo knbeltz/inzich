@@ -202,3 +202,11 @@ After company confirmed:
 ## Note to Mentor
 
 After every phase sign-off, update the phase status table in `docs/RFC.md` and update the "Current Position" section in this file (`docs/RESUME_PROMPT.md`).
+
+---
+
+## GitHub
+
+Repository: https://github.com/knbeltz/inzich
+
+When Kai says "commit and push", stage all changed project files, write a descriptive commit message summarizing the phase work done, and push to `main`. Do not include a Co-Authored-By line in commit messages.
