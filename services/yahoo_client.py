@@ -77,6 +77,18 @@ class YahooClient:
             ratios=ratios
             )
 
+'''
+Pseudocode for get_available_periods 
+
+1. Call the appropriate yfinance property: 
+    - if period is "annual" -> self._yf_ticker.financials 
+    - if period is quarterly -> self._yf_ticker.quarterly_financials 
+
+2. Count the columns in that raw DataFrame.
+
+3. Return the count.
+
+'''
      
 
     
