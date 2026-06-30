@@ -136,20 +136,20 @@ Four reusable prompt functions — all take a question/prompt string as paramete
 
 ## Current Position
 
-**Phase 10 — IN PROGRESS. Step 4 (Scaffold) is next.**
+**Phase 10 — COMPLETE. Next: Phase 11 — Period Selection UI (`ui/prompts.py`)**
 
-Steps 1–3 (Requirements, Architecture, Pseudocode) are complete and signed off. All 6 parser files exist in `data/parsers/` with finalized pseudocode:
-- `company.py` — `parse_company(info, ticker) -> Company`
-- `historical_price.py` — `parse_historical_prices(history, ticker) -> list[HistoricalPrice]`
-- `income_statement.py` — `parse_income_statements(income_stmt, ticker, period) -> list[IncomeStatement]`
-- `balance_sheet.py` — `parse_balance_sheets(balance_sheet, ticker, period) -> list[BalanceSheet]`
-- `cashflow_statement.py` — `parse_cashflow_statements(cash_flow, ticker, period) -> list[CashflowStatement]`
-- `financial_ratios.py` — `parse_financial_ratios(ratios, ticker) -> FinancialRatios`
-- `__init__.py` — empty, to be filled with re-exports at end of phase
+Phase 10 (`data/parsers/`) fully signed off. All 6 parsers verified against real AAPL data:
+- `parse_company(info, ticker) -> Company`
+- `parse_historical_prices(history, ticker) -> list[HistoricalPrice]`
+- `parse_income_statement(income_stmt, ticker, period) -> list[IncomeStatement]`
+- `parse_balance_sheet(balance_sheet, ticker, period) -> list[BalanceSheet]`
+- `parse_cashflow_statement(cash_flow, ticker, period) -> list[CashflowStatement]`
+- `parse_financial_ratios(ratios, ticker) -> FinancialRatios`
+- `__init__.py` re-exports all 6 functions
 
 Key decisions locked in:
 - `fiscal_year` from `row["index"].year` (guaranteed column after `.T.reset_index()`)
-- Safe read: `row.get("Column Name")` for all DataFrame columns; `ratios.get("field")` for ratios dict
+- Safe read: `row.get("Column Name")` for all DataFrame columns; `row["key"]` only for guaranteed/required fields
 - `adjusted_close` always `None` — yfinance doesn't return it separately
 - Flat dict parsers (`company`, `financial_ratios`) return a single object, not a list
 

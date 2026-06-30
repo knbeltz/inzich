@@ -128,7 +128,7 @@ Each phase follows this sequence:
 | 7 | ✅ Complete | Yahoo Finance Client |
 | 8 | ✅ Complete | Company Search + Validation |
 | 9 | ✅ Complete | Data Models |
-| 10 | ⬜ | Data Parsers |
+| 10 | ✅ Complete | Data Parsers |
 | 11 | ⬜ | Period Selection UI |
 | 12 | ⬜ | Excel Exporter |
 | 13 | ⬜ | Optional AI Summary |

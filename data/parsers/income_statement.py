@@ -1,34 +1,27 @@
-'''
-Pseudocode: 
-
-parse_income_statement(income_stmt, ticker, period)
-
-Given a DataFrame, a ticker string, and a period string: 
-  Create an empty list to hold results  
-
-  For each row in the DataFrame: 
-    Build one IncomeStatement object using: 
-      - ticker and period from the arguments 
-      - fiscal_year from row["index"].year
-      - revenue from row.get("Total Revenue")
-      - gross_profit from row.get("Gross Profit")
-      - operating_income from row.get("Operating Income")
-      - ebit from row.get("EBIT")
-      - ebitda from row.get("EBITDA")
-      - pretax_income from row.get("Pretax Income")
-      - net_income from row.get("Net Income")
-      - eps from row.get("Diluted EPS")
-      - any missing column -> None
-
-    Append it to the list 
-  
-  Return the list 
-
-'''
-
 import pandas as pd
 from data.models import IncomeStatement
 
+
 def parse_income_statement(income_stmt, ticker, period):
     """Builds and returns a list of IncomeStatement objects from the income_stmt DataFrame."""
-    pass
+
+    statements = []
+
+    for index, row in income_stmt.iterrows():
+        statement = IncomeStatement(
+            ticker=ticker,
+            period=period,
+            fiscal_year=row["index"].year,
+            revenue=row.get("Total Revenue"),
+            gross_profit=row.get("Gross Profit"),
+            operating_income=row.get("Operating Income"),
+            ebit=row.get("EBIT"),
+            ebitda=row.get("EBITDA"),
+            pretax_income=row.get("Pretax Income"),
+            net_income=row.get("Net Income"),
+            eps=row.get("Diluted EPS"),
+        )
+
+        statements.append(statement)
+
+    return statements

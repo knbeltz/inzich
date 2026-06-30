@@ -1,26 +1,24 @@
-'''
-Psuedocode:
-
-parse_historical_prices(history, ticker)
-
-Given a DataFrame of price history and a ticker string: 
-    Create an empty list to hold results. 
-
-    For each row in the DataFrame: 
-        Build one Historical Price object using: 
-            - ticker from the argument 
-            - date from the row's index (the DataFrame index is the date here.)
-            - open, high, low, close, volume from the row's columns 
-            - adjusted_close = None (yfinance doesn't return it seperately) 
-
-        Append it to the list.
-    Return the list. 
-'''
-
-import pandas as pd 
+import pandas as pd
 from data.models import HistoricalPrice
 
-def parse_historical_prices(history, ticker): 
-    """Builds and returns a list of Historical Price objects from the history DataFrame."""
-    pass
 
+def parse_historical_prices(history, ticker):
+    """Builds and returns a list of HistoricalPrice objects from the history DataFrame."""
+
+    historical_prices = []
+
+    for date, row in history.iterrows():
+        price = HistoricalPrice(
+            ticker=ticker,
+            date=date.date(),
+            open=row.get("Open"),
+            high=row.get("High"),
+            low=row.get("Low"),
+            close=row.get("Close"),
+            volume=row.get("Volume"),
+            adjusted_close=None,
+        )
+
+        historical_prices.append(price)
+
+    return historical_prices
