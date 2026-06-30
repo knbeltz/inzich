@@ -16,3 +16,11 @@ Given a DataFrame of price history and a ticker string:
         Append it to the list.
     Return the list. 
 '''
+
+import pandas as pd 
+from data.models import HistoricalPrice
+
+def parse_historical_prices(history, ticker): 
+    """Builds and returns a list of Historical Price objects from the history DataFrame."""
+    pass
+

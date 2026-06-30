@@ -22,3 +22,10 @@ Given a DataFrame, a ticker string, and a period string:
   
   Return the list 
 '''
+
+import pandas as pd
+from data.models import CashflowStatement 
+
+def parse_cashflow_statement(cash_flow, ticker, period): 
+    """Builds and returns a list of CashflowStatement objects from the cash_flow DataFrame."""
+    pass 

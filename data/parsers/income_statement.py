@@ -25,3 +25,10 @@ Given a DataFrame, a ticker string, and a period string:
   Return the list 
 
 '''
+
+import pandas as pd
+from data.models import IncomeStatement
+
+def parse_income_statement(income_stmt, ticker, period):
+    """Builds and returns a list of IncomeStatement objects from the income_stmt DataFrame."""
+    pass

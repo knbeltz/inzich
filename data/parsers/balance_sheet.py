@@ -25,3 +25,10 @@ Given a DataFrame, a ticker string, and a period string:
     Return the list
 
 '''
+
+import pandas as pd
+from data.models import BalanceSheet
+
+def parse_balance_sheet(balance_sheet, ticker, period): 
+    """Build and return a list of BalanceSheet objects from the balance_sheet DataFrame."""
+    pass
