@@ -136,22 +136,17 @@ Four reusable prompt functions — all take a question/prompt string as paramete
 
 ## Current Position
 
-**Phase 10 — COMPLETE. Next: Phase 11 — Period Selection UI (`ui/prompts.py`)**
+**Phase 11 — COMPLETE. Next: Phase 12 — Excel Exporter (`exporters/excel_exporter.py`)**
 
-Phase 10 (`data/parsers/`) fully signed off. All 6 parsers verified against real AAPL data:
-- `parse_company(info, ticker) -> Company`
-- `parse_historical_prices(history, ticker) -> list[HistoricalPrice]`
-- `parse_income_statement(income_stmt, ticker, period) -> list[IncomeStatement]`
-- `parse_balance_sheet(balance_sheet, ticker, period) -> list[BalanceSheet]`
-- `parse_cashflow_statement(cash_flow, ticker, period) -> list[CashflowStatement]`
-- `parse_financial_ratios(ratios, ticker) -> FinancialRatios`
-- `__init__.py` re-exports all 6 functions
+Phase 11 (`ui/prompts.py` + `services/yahoo_client.py`) fully signed off:
+- `YahooClient.get_available_periods(period)` — lightweight fetch, counts columns, returns int. Verified against real AAPL data (annual: 5, quarterly: 5).
+- `ask_period_type(question)` — wraps `ask_from_list` with hardcoded `["Annual", "Quarterly"]`
+- `ask_period_count(question, period_type, max_periods)` — builds label→int dict, calls `ask_from_list`, returns int or None
 
 Key decisions locked in:
-- `fiscal_year` from `row["index"].year` (guaranteed column after `.T.reset_index()`)
-- Safe read: `row.get("Column Name")` for all DataFrame columns; `row["key"]` only for guaranteed/required fields
-- `adjusted_close` always `None` — yfinance doesn't return it separately
-- Flat dict parsers (`company`, `financial_ratios`) return a single object, not a list
+- No hardcoded spec max — period count capped to whatever yfinance actually returns
+- Annual labels: "1 Year", "2 Years" etc.; Quarterly labels: "1Q", "2Q" etc.
+- `period_type` parameter (not `period`) to avoid collision with loop variable
 
 ---
 

@@ -129,7 +129,7 @@ Each phase follows this sequence:
 | 8 | ✅ Complete | Company Search + Validation |
 | 9 | ✅ Complete | Data Models |
 | 10 | ✅ Complete | Data Parsers |
-| 11 | ⬜ | Period Selection UI |
+| 11 | ✅ Complete | Period Selection UI |
 | 12 | ⬜ | Excel Exporter |
 | 13 | ⬜ | Optional AI Summary |
 | 14 | ⬜ | Company Report Workflow |

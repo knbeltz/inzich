@@ -67,8 +67,24 @@ def ask_period_count(question, period_type, max_periods):
 '''
 def ask_period_type(question: str) -> str | None:
     """Given a question string, prompts the user to select a period type (Annual or Quarterly). Returns "Annual" or "Quarterly" or None on cancel."""
-    pass
+    return ask_from_list(question, ["Annual", "Quarterly"])
 
 def ask_period_count(question: str, period_type: str, max_periods: int) -> int | None:
     """Given a question string, a period type (Annual or Quarterly), and a maximum number of periods, prompts the user to select a period count. Returns an int or None on cancel."""
-    pass
+    period_dict = {}
+
+    for period in range(1, max_periods +1): 
+        if period_type == "Annual" and period > 1:
+            label = f"{period} Years"
+        elif period_type == "Annual" and period == 1:
+            label = f"{period} Year"
+        elif period_type == "Quarterly":
+            label = f"{period}Q"
+        period_dict[label] = period
+    
+    selected = ask_from_list(question, list(period_dict.keys()))
+    
+    if selected is None: 
+        return None 
+    else:
+        return period_dict[selected]
