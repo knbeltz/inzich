@@ -57,8 +57,7 @@ def ask_period_count(question, period_type, max_periods):
     1. Loop over range(1, max_periods + 1) to build the dict:
    - if period_type == "Annual" and period > 1 → label = f"{period} Years"
    - if period_type == "Annual" and period == 1 → label = f"{period} Year"
-   - if period_type == "Quarterly" and period > 1 → label = f"{period} Quarters"
-   - if period_type == "Quarterly" and period == 1 → label = f"{period} Quarter"
+   - if period_type == "Quarterly" → label = f"{period}Q"
    - add label → period to the dict
 
 2. Call ask_from_list with the question and the dict keys as options
@@ -66,3 +65,10 @@ def ask_period_count(question, period_type, max_periods):
 3. Look up the selected label in the dict, return the int (or None on cancel)
 
 '''
+def ask_period_type(question: str) -> str | None:
+    """Given a question string, prompts the user to select a period type (Annual or Quarterly). Returns "Annual" or "Quarterly" or None on cancel."""
+    pass
+
+def ask_period_count(question: str, period_type: str, max_periods: int) -> int | None:
+    """Given a question string, a period type (Annual or Quarterly), and a maximum number of periods, prompts the user to select a period count. Returns an int or None on cancel."""
+    pass

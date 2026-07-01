@@ -76,20 +76,15 @@ class YahooClient:
             cash_flow=cash_flow, 
             ratios=ratios
             )
-
-'''
-Pseudocode for get_available_periods 
-
-1. Call the appropriate yfinance property: 
-    - if period is "annual" -> self._yf_ticker.financials 
-    - if period is quarterly -> self._yf_ticker.quarterly_financials 
-
-2. Count the columns in that raw DataFrame.
-
-3. Return the count.
-
-'''
-     
-
     
+    def get_available_periods(self, period): 
+        """Calls the appropriate yfinance property, counts the columns in that raw DataFrame, and returns the count."""
+
+        if period == "annual":
+            return len(self._yf_ticker.financials.columns)
+        elif period == "quarterly":
+            return len(self._yf_ticker.quarterly_financials.columns)
+        
+
+
 
