@@ -136,17 +136,16 @@ Four reusable prompt functions — all take a question/prompt string as paramete
 
 ## Current Position
 
-**Phase 11 — COMPLETE. Next: Phase 12 — Excel Exporter (`exporters/excel_exporter.py`)**
+**Phase 12 — IN PROGRESS. Excel Exporter (`exporters/excel_exporter.py`)**
 
-Phase 11 (`ui/prompts.py` + `services/yahoo_client.py`) fully signed off:
-- `YahooClient.get_available_periods(period)` — lightweight fetch, counts columns, returns int. Verified against real AAPL data (annual: 5, quarterly: 5).
-- `ask_period_type(question)` — wraps `ask_from_list` with hardcoded `["Annual", "Quarterly"]`
-- `ask_period_count(question, period_type, max_periods)` — builds label→int dict, calls `ask_from_list`, returns int or None
+Phase 12 pseudocode in progress — `export()` and `write_income_statement()` drafted and approved. Remaining helpers still to be pseudocoded: `write_company_overview`, `write_historical_prices`, `write_balance_sheet`, `write_cashflow_statement`, `write_financial_ratios`, `write_ai_summary`.
 
-Key decisions locked in:
-- No hardcoded spec max — period count capped to whatever yfinance actually returns
-- Annual labels: "1 Year", "2 Years" etc.; Quarterly labels: "1Q", "2Q" etc.
-- `period_type` parameter (not `period`) to avoid collision with loop variable
+Key decisions locked in for Phase 12:
+- Transposed layout for statement sheets (Sheets 3, 4, 5) — metrics as rows, fiscal years as columns
+- Single-model sheets (1, 6) use two-column label/value layout
+- `None` field values written as blank cells (not "N/A")
+- Empty statement list → write metric labels in column A, return early
+- File named `{TICKER}_{YYYY-MM-DD}.xlsx`, auto-opens via `os.startfile()` after save
 
 ---
 
