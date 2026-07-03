@@ -136,14 +136,18 @@ Four reusable prompt functions — all take a question/prompt string as paramete
 
 ## Current Position
 
-**Phase 12 — IN PROGRESS. Excel Exporter (`exporters/excel_exporter.py`)**
+**Phase 12 — COMPLETE. Next: Phase 13 — Optional AI Summary (`services/openai_client.py`)**
 
-Phase 12 pseudocode in progress — `export()` and `write_income_statement()` drafted and approved. Remaining helpers still to be pseudocoded: `write_company_overview`, `write_historical_prices`, `write_balance_sheet`, `write_cashflow_statement`, `write_financial_ratios`, `write_ai_summary`.
+Phase 12 (`exporters/excel_exporter.py`) fully signed off:
+- `export()` — creates 7-sheet workbook, saves to `{TICKER}_{YYYY-MM-DD}.xlsx`, auto-opens via `os.startfile()`
+- `write_company_overview` / `write_financial_ratios` — two-column label/value layout
+- `write_income_statement` / `write_balance_sheet` / `write_cashflow_statement` — transposed layout, metrics as rows, fiscal years as columns
+- `write_historical_prices` — flat layout, one row per date, fields as columns
+- `write_ai_summary` — writes string to A1, fallback message if None
+- Verified against fake AAPL data — all 7 sheets correct
 
-Key decisions locked in for Phase 12:
-- Transposed layout for statement sheets (Sheets 3, 4, 5) — metrics as rows, fiscal years as columns
-- Single-model sheets (1, 6) use two-column label/value layout
-- `None` field values written as blank cells (not "N/A")
+Key decisions locked in:
+- `None` field values written as blank cells
 - Empty statement list → write metric labels in column A, return early
 - File named `{TICKER}_{YYYY-MM-DD}.xlsx`, auto-opens via `os.startfile()` after save
 
