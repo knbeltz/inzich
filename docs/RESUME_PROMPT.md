@@ -136,7 +136,7 @@ Four reusable prompt functions — all take a question/prompt string as paramete
 
 ## Current Position
 
-**Phase 12 — COMPLETE. Next: Phase 13 — Optional AI Summary (`services/openai_client.py`)**
+**Phase 13 — COMPLETE. Next: Phase 14 — Company Report Workflow (`workflows/company_info.py`)**
 
 Phase 12 (`exporters/excel_exporter.py`) fully signed off:
 - `export()` — creates 7-sheet workbook, saves to `{TICKER}_{YYYY-MM-DD}.xlsx`, auto-opens via `os.startfile()`
