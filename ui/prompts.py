@@ -88,3 +88,13 @@ def ask_period_count(question: str, period_type: str, max_periods: int) -> int |
         return None 
     else:
         return period_dict[selected]
+
+def quit():
+    while True:
+        confirmed = questionary.confirm("Are you sure you want to quit?").ask()
+        if confirmed:
+            break
+        else: 
+            continue
+
+    return confirmed
