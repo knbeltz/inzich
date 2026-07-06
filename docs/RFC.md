@@ -132,12 +132,12 @@ Each phase follows this sequence:
 | 11 | ✅ Complete | Period Selection UI |
 | 12 | ✅ Complete | Excel Exporter |
 | 13 | ✅ Complete | Optional AI Summary |
-| 14 | ⬜ | Company Report Workflow |
-| 15 | ⬜ | Caching Layer |
-| 16 | ⬜ | Error Handling + Polish |
-| 17 | ⬜ | Unit Tests |
-| 18 | ⬜ | Integration Tests |
-| 19 | ⬜ | Documentation |
+| 14 | ✅ Complete | Company Report Workflow |
+| 15 | ⬜ | Documentation |
+| 16 | ⬜ | Caching Layer |
+| 17 | ⬜ | Error Handling + Polish |
+| 18 | ⬜ | Unit Tests |
+| 19 | ⬜ | Integration Tests |
 
 ---
 

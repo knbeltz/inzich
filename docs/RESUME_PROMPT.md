@@ -136,20 +136,23 @@ Four reusable prompt functions — all take a question/prompt string as paramete
 
 ## Current Position
 
-**Phase 13 — COMPLETE. Next: Phase 14 — Company Report Workflow (`workflows/company_info.py`)**
+**Phase 14 — COMPLETE. Next: Phase 15 — Documentation**
 
-Phase 12 (`exporters/excel_exporter.py`) fully signed off:
-- `export()` — creates 7-sheet workbook, saves to `{TICKER}_{YYYY-MM-DD}.xlsx`, auto-opens via `os.startfile()`
-- `write_company_overview` / `write_financial_ratios` — two-column label/value layout
-- `write_income_statement` / `write_balance_sheet` / `write_cashflow_statement` — transposed layout, metrics as rows, fiscal years as columns
-- `write_historical_prices` — flat layout, one row per date, fields as columns
-- `write_ai_summary` — writes string to A1, fallback message if None
-- Verified against fake AAPL data — all 7 sheets correct
+Phase 14 (`workflows/company_info.py`) fully signed off:
+- `run()` — end-to-end V1 flow: company search → confirmation → period selection → fetch → parse → export
+- Outer loop: "analyze another company?" after each export
+- Inner loop: company name → OpenAI resolution → confirmation; loops back on "No", goes to "analyze another?" on `CompanyResolverError`
+- Period capped at 4 years / 4 quarters
+- AI summary exported as `.txt` via `exporters/ai_summary_exporter.py`
+- Both Excel and `.txt` files auto-open after export (cross-platform: Windows + Mac)
+- `main.py` simplified to splash + `run()` call
+- `ui/prompts.py` — `quit()` added
 
 Key decisions locked in:
-- `None` field values written as blank cells
-- Empty statement list → write metric labels in column A, return early
-- File named `{TICKER}_{YYYY-MM-DD}.xlsx`, auto-opens via `os.startfile()` after save
+- `OPENAI_API_KEY` is now required — app fails fast on startup if missing
+- AI summary exported as `.txt`, not as an Excel sheet
+- Period count capped at 4 (both annual and quarterly) — no dynamic yfinance lookup
+- Cross-platform file open via `platform.system()` check in both exporters
 
 ---
 
@@ -161,15 +164,15 @@ Key decisions locked in:
 | 8 | Company Search + Validation | `services/company_resolver.py` — OpenAI resolves free-text company name → confirmed ticker; handles misspellings, gibberish, multiple companies, not-publicly-traded |
 | 9 | Data Models | `data/models.py` — Pydantic models for all 6 data types; financial statement models include `period` field |
 | 10 | Data Parsers | `data/parsers/` — yfinance dicts → clean Pydantic models |
-| 11 | Period Selection UI | `ui/prompts` — annual/quarterly selector, then period count selector (options capped to available data) |
-| 12 | Excel Exporter | `exporters/excel_exporter.py` — openpyxl 7-sheet workbook; `os.startfile(path)` auto-opens on Windows after save |
-| 13 | Optional AI Summary | `services/openai_client.py` — Sheet 7 via OpenAI with `web_search_preview` tool; parses cited sources; skipped if no key |
+| 11 | Period Selection UI | `ui/prompts` — annual/quarterly selector, then period count selector (capped at 4 years / 4 quarters) |
+| 12 | Excel Exporter | `exporters/excel_exporter.py` — openpyxl 6-sheet workbook; cross-platform auto-open after save |
+| 13 | AI Summary | `services/openai_client.py` — OpenAI with `web_search_preview` tool; exported as `.txt` via `exporters/ai_summary_exporter.py` |
 | 14 | Company Report Workflow | `workflows/company_info.py` — end-to-end V1 flow |
-| 15 | Caching Layer | `data/cache.py` — SQLite, 24hr TTL per ticker |
-| 16 | Error Handling + Polish | Rich spinners, clear error messages, edge cases |
-| 17 | Unit Tests | Cover yahoo_client, parsers, excel_exporter with mocks |
-| 18 | Integration Tests | End-to-end with real yfinance on AAPL |
-| 19 | Documentation | README.md, docstring pass, final .env.example |
+| 15 | Documentation | README.md, docstring pass, final .env.example |
+| 16 | Caching Layer | `data/cache.py` — SQLite, 24hr TTL per ticker |
+| 17 | Error Handling + Polish | Rich spinners, clear error messages, edge cases |
+| 18 | Unit Tests | Cover yahoo_client, parsers, excel_exporter with mocks |
+| 19 | Integration Tests | End-to-end with real yfinance on AAPL |
 
 ---
 

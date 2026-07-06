@@ -64,9 +64,9 @@ class YahooClient:
             "revenue_growth": info.get("revenueGrowth"),      
         }
 
-        income_stmt = income_stmt.T.reset_index()
-        balance_sheet = balance_sheet.T.reset_index()
-        cash_flow = cash_flow.T.reset_index()
+        income_stmt = income_stmt.T.reset_index().head(num_periods)
+        balance_sheet = balance_sheet.T.reset_index().head(num_periods)
+        cash_flow = cash_flow.T.reset_index().head(num_periods)
 
         return FetchResult(
             info=info, 

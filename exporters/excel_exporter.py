@@ -1,6 +1,8 @@
 
 import openpyxl
 import os
+import platform
+import subprocess
 from datetime import date
 from pathlib import Path
 from data.models import Company, HistoricalPrice, IncomeStatement, BalanceSheet, CashflowStatement, FinancialRatios
@@ -40,10 +42,10 @@ def export(
 
     wb.save(file_path)
 
-    os.startfile(file_path)
-
-    return file_path
-
+    if platform.system() == "Windows":
+        os.startfile(file_path)
+    else: 
+        subprocess.run(["open", file_path])
 
 def write_income_statement(ws, income_statements):
     """Write income statement data in transposed layout — metrics as rows, fiscal years as columns."""

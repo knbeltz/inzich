@@ -39,6 +39,7 @@ from data.parsers.balance_sheet import parse_balance_sheet
 from data.parsers.cashflow_statement import parse_cashflow_statement
 from data.parsers.financial_ratios import parse_financial_ratios
 from exporters.excel_exporter import export
+from exporters.ai_summary_exporter import export_ai_summary
 
 def run():
     """Runs the Company Info Workflow"""
@@ -105,7 +106,7 @@ def run():
         period_count = ask_period_count(
             "Enter the number of periods: ",
             period_type,
-            client.get_available_periods(period_type.lower())
+            4
         )
 
         if period_count is None:
@@ -113,8 +114,7 @@ def run():
                 break
             continue
 
-        result = client.fetch_all(period_type.lower(), period_count).head(period_count)
-
+        result = client.fetch_all(period_type.lower(), period_count)
         company = parse_company(result.info, ticker)
         historical_prices = parse_historical_prices(result.history, ticker)
         income_statement = parse_income_statement(result.income_stmt, ticker, period_type.lower())
@@ -131,10 +131,11 @@ def run():
             balance_sheet,
             cashflow_statement,
             financial_ratios,
-            ai_summary,
             ticker,
             EXPORT_DIR
         )
+
+        export_ai_summary(ticker, ai_summary, EXPORT_DIR)
 
         restart = ask_yes_no("Do you want to research another company? (Y/N): ")
 
