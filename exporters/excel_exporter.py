@@ -13,7 +13,6 @@ def export(
     balance_sheets: list[BalanceSheet],
     cash_flows: list[CashflowStatement],
     ratios: FinancialRatios,
-    ai_summary: str | None,
     ticker: str,
     export_dir: Path,
 ) -> Path:
@@ -29,7 +28,6 @@ def export(
     balance_sheet_ws = wb.create_sheet("Balance Sheet")
     cashflow_statement_ws = wb.create_sheet("Cashflow Statement")
     financial_ratios_ws = wb.create_sheet("Financial Ratios")
-    ai_summary_ws = wb.create_sheet("AI Summary")
 
     write_company_overview(ws, company)
     write_historical_prices(historical_ws, historical_prices)
@@ -37,7 +35,6 @@ def export(
     write_balance_sheet(balance_sheet_ws, balance_sheets)
     write_cashflow_statement(cashflow_statement_ws, cash_flows)
     write_financial_ratios(financial_ratios_ws, ratios)
-    write_ai_summary(ai_summary_ws, ai_summary)
 
     file_path = export_dir / f"{ticker.upper()}_{date.today().isoformat()}.xlsx"
 
@@ -208,9 +205,3 @@ def write_financial_ratios(ws, ratios):
         ws.cell(row=row_num, column=1).value = label
         ws.cell(row=row_num, column=2).value = getattr(ratios, attr_name, None)
 
-def write_ai_summary(ws, ai_summary):
-    """Write the AI summary string into cell A1, or a fallback message if absent."""
-    if not ai_summary:
-        ws["A1"] = "AI Summary not available."
-    else:
-        ws["A1"] = ai_summary

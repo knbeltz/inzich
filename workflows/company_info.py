@@ -27,7 +27,7 @@ def workflow():
 
 
 '''
-from config.settings import OPENAI_API_KEY, EXPORT_DIR
+from config.settings import EXPORT_DIR
 from ui.prompts import ask_company_name, ask_yes_no, ask_period_type, ask_period_count, quit
 from services.company_resolver import resolve_company, CompanyResolverError
 from services.yahoo_client import YahooClient
@@ -44,26 +44,30 @@ def run():
     """Runs the Company Info Workflow"""
 
     while True:
+        error_occurred = False
 
-        # Keep asking until we have a confirmed company
+        # Get a confirmed company
         while True:
+            while True:
+                user_input = ask_company_name("Enter a company name: ")
 
-            # Ask for a company
-            user_input = ask_company_name("Enter a company name: ")
+                if user_input is None:
+                    if quit():
+                        return
+                    continue
 
-            if user_input is None:
-                if quit():
-                    return
-                continue
+                try:
+                    ticker, company_name = resolve_company(user_input)
+                    break  # successfully resolved, leave resolver loop
 
-            # Try to resolve the company
-            try:
-                ticker, company_name = resolve_company(user_input)
-            except CompanyResolverError as e:
-                print(e.message)
-                continue
+                except CompanyResolverError as e:
+                    print(e.message)
+                    error_occurred = True
+                    break  # leave resolver loop
 
-            # Confirm with the user
+            if error_occurred:
+                break  # leave confirmation loop and go to restart prompt
+
             confirmed = ask_yes_no(
                 f"Do you want to research {company_name} ({ticker})? (Y/N): "
             )
@@ -79,7 +83,16 @@ def run():
                     return
                 continue
 
-        # Ask for period type
+        if error_occurred:
+            restart = ask_yes_no("Do you want to research another company? (Y/N): ")
+
+            if restart is True:
+                continue
+            else:
+                break
+
+        client = YahooClient(ticker)
+
         period_type = ask_period_type(
             "What period type would you like to use? (Annual or Quarterly): "
         )
@@ -89,10 +102,10 @@ def run():
                 break
             continue
 
-        # Ask for number of periods
         period_count = ask_period_count(
             "Enter the number of periods: ",
             period_type,
+            client.get_available_periods(period_type.lower())
         )
 
         if period_count is None:
@@ -100,35 +113,32 @@ def run():
                 break
             continue
 
-        # Fetch the data
-        yahoo_client = YahooClient(ticker).fetch_all(period_type, period_count)
+        result = client.fetch_all(period_type.lower(), period_count).head(period_count)
 
-        # Parse the data
-        parse_company(yahoo_client, company_name, ticker)
-        parse_historical_prices(yahoo_client)
-        parse_income_statement(yahoo_client)
-        parse_balance_sheet(yahoo_client)
-        parse_cashflow_statement(yahoo_client)
-        parse_financial_ratios(yahoo_client)
+        company = parse_company(result.info, ticker)
+        historical_prices = parse_historical_prices(result.history, ticker)
+        income_statement = parse_income_statement(result.income_stmt, ticker, period_type.lower())
+        balance_sheet = parse_balance_sheet(result.balance_sheet, ticker, period_type.lower())
+        cashflow_statement = parse_cashflow_statement(result.cash_flow, ticker, period_type.lower())
+        financial_ratios = parse_financial_ratios(result.ratios, ticker)
 
-        # Generate the AI summary
         ai_summary = get_ai_summary(ticker, company_name)
 
-        # Export the data
-        export(EXPORT_DIR, company_name, ticker, ai_summary)
-
-        # Ask if the user wants to research another company
-        restart = ask_yes_no(
-            "Do you want to research another company? (Y/N): "
+        export(
+            company,
+            historical_prices,
+            income_statement,
+            balance_sheet,
+            cashflow_statement,
+            financial_ratios,
+            ai_summary,
+            ticker,
+            EXPORT_DIR
         )
 
-        if restart == "Y":
-            continue
+        restart = ask_yes_no("Do you want to research another company? (Y/N): ")
 
-        elif restart == "N":
+        if restart is True:
+            continue
+        else:
             break
-
-        elif restart is None:
-            if quit():
-                break
-            continue
