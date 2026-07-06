@@ -79,7 +79,7 @@ Each phase follows a 9-step sequence:
 
 ## Current Position
 
-**Phase 14 — COMPLETE. Next: Phase 15 — Documentation**
+**Phase 15 — COMPLETE. Next: Phase 16 — Caching Layer**
 
 Phase 14 (`workflows/company_info.py`) fully signed off:
 - `run()` — end-to-end V1 flow: company search → confirmation → period selection → fetch → parse → export
@@ -111,7 +111,7 @@ Phase 14 (`workflows/company_info.py`) fully signed off:
 | 12 | ✅ Complete | Excel Exporter |
 | 13 | ✅ Complete | AI Summary |
 | 14 | ✅ Complete | Company Report Workflow |
-| 15 | ⬜ | Documentation |
+| 15 | ✅ Complete | Documentation |
 | 16 | ⬜ | Caching Layer |
 | 17 | ⬜ | Error Handling + Polish |
 | 18 | ⬜ | Unit Tests |
