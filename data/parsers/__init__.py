@@ -1,3 +1,5 @@
+"""Parser functions — convert raw yfinance data into Pydantic models."""
+
 from data.parsers.company import parse_company
 from data.parsers.balance_sheet import parse_balance_sheet
 from data.parsers.income_statement import parse_income_statement

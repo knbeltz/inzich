@@ -1,3 +1,4 @@
+"""Builds and exports a 6-sheet Excel workbook from Pydantic models."""
 
 import openpyxl
 import os

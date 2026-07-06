@@ -1,3 +1,4 @@
+"""Fetches financial data from Yahoo Finance for a given ticker."""
 
 import yfinance as yf 
 import pandas as pd 

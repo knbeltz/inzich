@@ -1,3 +1,5 @@
+"""Generates an AI equity research summary via OpenAI with web search."""
+
 from openai import OpenAI
 from config.settings import OPENAI_API_KEY
 from utils.logger import logger

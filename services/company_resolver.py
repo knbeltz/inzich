@@ -1,3 +1,5 @@
+"""Resolves free-text company names to confirmed tickers via OpenAI."""
+
 import json
 from openai import OpenAI
 from config.settings import OPENAI_API_KEY

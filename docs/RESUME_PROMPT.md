@@ -1,136 +1,79 @@
-# Inzich — Session Resume Prompt
+# Inzich — Project Context
 
-Paste this entire file into a new Claude chat to resume the mentorship session with full context.
-
----
-
-## Your Role
-
-You are a **Staff Engineer mentor** working with a junior engineer (Kai Beltz) on a Python terminal financial analysis app called Inzich. You have one critical rule:
-
-**You NEVER write production code** unless the engineer explicitly says "Write the code" or "Implement this." For files already approved in earlier phases that need correction due to scope changes, you may edit directly. For all new phase work, the engineer writes all code.
-
-**Exception:** For small non-conceptual errors (typos, duplicate lines, wrong capitalisation, cosmetic fixes) — if the engineer explicitly asks you to fix it, you may fix it directly. Only applies when the error is not a learning opportunity.
-
-Each phase follows a 9-step workflow:
-1. Requirements — what does this module do? Edge cases?
-2. Architecture — where does it live? What does it call/return?
-3. Pseudocode — plain English logic before code
-4. Scaffold — docstring + `pass`-body stubs
-5. Draft — engineer implements
-6. Review — you give structured feedback (numbered issues)
-7. Fix — engineer corrects all issues
-8. Verify — run it, confirm it works
-9. Sign-off — approve, update `docs/RFC.md`, move to next phase
+Technical reference for contributors. Covers architecture decisions, development workflow, and current project state.
 
 ---
 
 ## What Inzich Is
 
-A Python terminal app that fetches financial data for any publicly traded company from Yahoo Finance and exports a professional 7-sheet Excel workbook. V1 is a single workflow: user enters company → app fetches data → exports `.xlsx`.
-
-**V1 scope only.** DCF, Comparables, SEC EDGAR, FRED API are all V2 — do not reference them.
+A Python terminal app that fetches financial data for any publicly traded company from Yahoo Finance and exports a professional 6-sheet Excel workbook plus an AI-generated research summary. V1 is a single workflow: user enters a company name → app fetches data → exports `.xlsx` and `.txt`.
 
 ---
 
 ## Technology Stack
 
-- Python 3.11.3, Windows 11, PowerShell 5.1, Windows Terminal
-- `venv` for virtual environment
-- `rich` — terminal UI (colors, panels, spinners)
-- `questionary` — interactive prompts (select, confirm, text, checkbox)
-- `python-dotenv` — `.env` loading
-- `yfinance` — PRIMARY data source, no API key required
-- `pandas` — DataFrames (yfinance returns DataFrames)
-- `numpy` — numerical operations
-- `pydantic` — data models with validation
-- `openpyxl` — Excel workbook generation
-- `openai` — optional Sheet 7 AI summary
-- `sqlite3` (stdlib) — caching layer
+| Package | Version | Role |
+|---|---|---|
+| Python | 3.11.3 | Runtime |
+| rich | >=13.0.0 | Terminal UI: colors, panels, spinners |
+| questionary | >=2.0.0 | Interactive prompts: select, confirm, text |
+| python-dotenv | >=1.0.0 | Load `.env` into `os.environ` |
+| yfinance | >=0.2.0 | PRIMARY data source — all financial statements |
+| pandas | >=2.0.0 | DataFrames; yfinance returns DataFrames |
+| numpy | >=1.24.0 | Numerical operations on financial arrays |
+| pydantic | >=2.0.0 | Data models with built-in validation |
+| openpyxl | >=3.1.0 | Excel workbook generation |
+| openai | >=1.0.0 | Company resolution + AI summary |
+| sqlite3 | stdlib | Caching layer (no extra install needed) |
+| pytest | >=7.4.0 | Test framework |
+| pytest-mock | >=3.11.0 | Mock yfinance in unit tests |
 
 ---
 
-## Project Location
+## Key Architectural Decisions
 
-`c:\Users\kaibe\OneDrive\Desktop\AI Projects\inzich`
+### 1. Yahoo Finance as primary data source
+yfinance provides all data needed for V1 without an API key. SEC EDGAR integration is deferred to V2.
 
----
+### 2. Pydantic models as the shared contract
+Parsers produce Pydantic models. The exporter consumes Pydantic models. Parsers and exporters never need to know about each other and can be tested independently.
 
-## Files to Read at Session Start
+### 3. questionary returns None on Ctrl+C
+questionary catches `KeyboardInterrupt` internally and returns `None`. All prompt functions in `ui/prompts.py` return `None` on cancel — they never call `sys.exit()`. The main loop handles `None` with a quit confirmation.
 
-Read these to verify current state before doing anything:
+### 4. Fail-fast config
+`config/settings.py` raises `ValueError` immediately on startup if any required env var is missing. `OPENAI_API_KEY` is required — used for both company resolution and AI summary.
 
-```
-main.py
-config/settings.py
-utils/logger.py
-ui/splash.py
-ui/menus.py
-ui/prompts.py
-requirements.txt
-docs/RFC.md
-```
+### 5. Company name validation via OpenAI
+yfinance has no search API. OpenAI resolves free-text input to a confirmed ticker. Handles misspellings, gibberish, multiple companies entered at once, and companies that are not publicly traded.
 
----
+### 6. Period capped at 4 years / 4 quarters
+Yahoo Finance reliably returns up to 4 annual or 4 quarterly periods. Options are hardcoded to this cap rather than dynamically fetching available periods.
 
-## Completed Phases (1–5)
+### 7. AI summary exported as .txt
+The AI summary (generated via OpenAI with `web_search_preview`) is written to a `.txt` file rather than an Excel sheet to avoid cell size limits.
 
-### Phase 1 — Project Setup ✅
-- `.gitignore` — excludes `.venv/`, `.env`, `__pycache__/`, `*.pyc`, `*.xlsx`
-- `.env` — `OPENAI_API_KEY`, `FRED_API_KEY` (placeholder), `DB_PATH=./data/cache.db`, `EXPORT_DIR=./exports`
-- `.env.example` — template with same keys, empty values
-- `requirements.txt` — all V1 packages (no fredapi)
-- Virtual environment created and packages installed
+### 8. Cross-platform file open
+Both exporters use `platform.system()` to choose between `os.startfile()` (Windows) and `subprocess.run(["open", ...])` (Mac).
 
-### Phase 2 — Configuration ✅
-**File:** `config/settings.py`
-
-Loads `.env` via `python-dotenv`, raises `ValueError` immediately if any required env var is missing (fail-fast). Defines `OPENAI_API_KEY`, `FRED_API_KEY`, `DB_PATH` (Path), `EXPORT_DIR` (Path). Creates `EXPORT_DIR` and `DB_PATH.parent` on startup using `Path.mkdir(parents=True, exist_ok=True)`.
-
-### Phase 3 — Logging ✅
-**File:** `utils/logger.py`
-
-Named logger `"inzich"`. `FileHandler` at `logs/inzich.log` (DEBUG level). `StreamHandler` to console (INFO level). Both use `"%(asctime)s | %(levelname)s | %(message)s"` format.
-
-### Phase 4 — UI Foundation ✅
-**Files:** `ui/splash.py`, `ui/menus.py`, `main.py`
-
-`splash.py`: Renders "INZICH" in orange (#FF9900), "Built by Kai Beltz" in blue (#1371FF), "Powered by OpenAI" in white. Uses `rich` Panel + Align.center().
-
-`menus.py`: `show_main_menu()` — two options: "Company Information" → `"company_info"`, "Quit" → `"quit"`.
-
-`main.py`: Imports config (triggers validation), shows splash, loops on menu selection. Handles `None` return (Ctrl+C in questionary) with quit confirmation. Routes `"company_info"` to placeholder print.
-
-### Phase 8 — Company Search + Validation ✅
-**File:** `services/company_resolver.py`
-
-`CompanyResolverError(reason, message)` — custom exception. `resolve_company(user_input)` calls OpenAI (`gpt-4.1-mini`) with a JSON-forcing system prompt, parses `response.output_text` via `json.loads()`, returns `(ticker, company_name)` on success, raises `CompanyResolverError` for `not_traded`, `multiple_companies`, or `unrecognized` outcomes. No UI logic — caller handles display.
-
-### Phase 5 — Input Handling ✅
-**File:** `ui/prompts.py`
-
-Four reusable prompt functions — all take a question/prompt string as parameter, all return `None` on cancel (never call `sys.exit()`):
-- `ask_company_name(prompt)` → `str | None` — validates non-empty
-- `ask_yes_no(question)` → `bool | None`
-- `ask_from_list(question, options)` → `str | None` — raises `ValueError` if options is empty
-- `ask_number_of_years(prompt)` → `int | None` — validates positive integer
+### 9. No EDGAR, no FRED in V1
+DCF, WACC, and XBRL parsing are V2 features.
 
 ---
 
-## Key Architectural Decisions Locked In
+## Development Workflow
 
-- **questionary returns `None` on Ctrl+C** — never raises KeyboardInterrupt. All prompts bubble `None` up to main loop.
-- **Fail-fast config** — `ValueError` on startup if required env var missing. Never half-starts. `OPENAI_API_KEY` is the exception: it is optional (Sheet 7 only). Missing key → warning shown, Sheet 7 excluded from menu.
-- **Named logger** — `from utils.logger import logger` used everywhere. One logger, one config.
-- **No EDGAR, no FRED in V1** — yfinance only.
-- **No vector database** — EDGAR XBRL is structured, semantic search not needed.
-- **Pydantic models as shared contract** — parsers produce them, exporter consumes them.
-- **DRY prompt functions** — take question as parameter, not workflow-specific.
-- **Company name validated by OpenAI** — yfinance has no search API; OpenAI resolves free-text input to a confirmed ticker. Handles misspellings, gibberish, multiple companies, and not-publicly-traded cases.
-- **Annual vs quarterly data period** — user selects after company confirmation. Annual capped at 4 years; quarterly capped at 16 quarters. Availability checked via yfinance first; cap lowered if fewer periods exist. Yahoo Finance client accepts `period: Literal["annual", "quarterly"]` and `num_periods: int`.
-- **No sheet selection** — all sheets are always exported. The user only inputs company name and data period. Sheet 7 is included automatically if `OPENAI_API_KEY` is present, skipped silently if not.
-- **Sheet 7 uses OpenAI web search with citations** — `services/openai_client.py` calls OpenAI with the `web_search_preview` tool. Response is parsed for cited sources and written as a numbered reference list in the sheet.
-- **Excel auto-opens on export** — after `openpyxl` saves the file, `os.startfile(path)` opens it immediately on Windows.
+Each phase follows a 9-step sequence:
+
+1. **Requirements** — What does this module need to do? Edge cases?
+2. **Architecture** — Where does it live? What does it call/return?
+3. **Pseudocode** — Write logic in plain English before touching code
+4. **Scaffold** — Create file with docstring + `pass`-body stubs
+5. **Draft** — Implement the code
+6. **Review** — Review for correctness, edge cases, style
+7. **Fix** — Correct all flagged issues
+8. **Verify** — Run the code; confirm it works
+9. **Sign-off** — Approve; update `docs/RFC.md`; move to next phase
 
 ---
 
@@ -141,79 +84,35 @@ Four reusable prompt functions — all take a question/prompt string as paramete
 Phase 14 (`workflows/company_info.py`) fully signed off:
 - `run()` — end-to-end V1 flow: company search → confirmation → period selection → fetch → parse → export
 - Outer loop: "analyze another company?" after each export
-- Inner loop: company name → OpenAI resolution → confirmation; loops back on "No", goes to "analyze another?" on `CompanyResolverError`
+- Inner loop: company name → OpenAI resolution → confirmation
+- `CompanyResolverError` → show message → go to "analyze another?" prompt
 - Period capped at 4 years / 4 quarters
 - AI summary exported as `.txt` via `exporters/ai_summary_exporter.py`
-- Both Excel and `.txt` files auto-open after export (cross-platform: Windows + Mac)
+- Both files auto-open after export (cross-platform)
 - `main.py` simplified to splash + `run()` call
-- `ui/prompts.py` — `quit()` added
-
-Key decisions locked in:
-- `OPENAI_API_KEY` is now required — app fails fast on startup if missing
-- AI summary exported as `.txt`, not as an Excel sheet
-- Period count capped at 4 (both annual and quarterly) — no dynamic yfinance lookup
-- Cross-platform file open via `platform.system()` check in both exporters
 
 ---
 
-## Remaining Phases
+## Phase Status
 
-| Phase | Name | Key deliverable |
+| Phase | Status | Name |
 |---|---|---|
-| 7 | Yahoo Finance Client | `services/yahoo_client.py` — yfinance wrapper for all 6 data types; accepts `period: Literal["annual","quarterly"]` and `num_periods: int` |
-| 8 | Company Search + Validation | `services/company_resolver.py` — OpenAI resolves free-text company name → confirmed ticker; handles misspellings, gibberish, multiple companies, not-publicly-traded |
-| 9 | Data Models | `data/models.py` — Pydantic models for all 6 data types; financial statement models include `period` field |
-| 10 | Data Parsers | `data/parsers/` — yfinance dicts → clean Pydantic models |
-| 11 | Period Selection UI | `ui/prompts` — annual/quarterly selector, then period count selector (capped at 4 years / 4 quarters) |
-| 12 | Excel Exporter | `exporters/excel_exporter.py` — openpyxl 6-sheet workbook; cross-platform auto-open after save |
-| 13 | AI Summary | `services/openai_client.py` — OpenAI with `web_search_preview` tool; exported as `.txt` via `exporters/ai_summary_exporter.py` |
-| 14 | Company Report Workflow | `workflows/company_info.py` — end-to-end V1 flow |
-| 15 | Documentation | README.md, docstring pass, final .env.example |
-| 16 | Caching Layer | `data/cache.py` — SQLite, 24hr TTL per ticker |
-| 17 | Error Handling + Polish | Rich spinners, clear error messages, edge cases |
-| 18 | Unit Tests | Cover yahoo_client, parsers, excel_exporter with mocks |
-| 19 | Integration Tests | End-to-end with real yfinance on AAPL |
-
----
-
-## V1 Menu Flow (for reference)
-
-```
-Main menu:
-  ▸ Company Information   → "company_info"
-  ▸ Quit                  → "quit"
-
-Company input:
-  User types company name (free text)
-  → OpenAI validates → one of:
-      • "Did you mean Apple Inc. (AAPL)? [Y/N]"   ← recognized
-      • "X is not a publicly traded company."       ← not public
-      • "Please enter one company at a time."       ← multiple
-      • "I couldn't recognize that as a company."  ← gibberish
-
-After company confirmed:
-  Period type (questionary.select):
-  ▸ Annual
-  ▸ Quarterly
-
-  Period count (questionary.select — options capped to available data):
-  Annual:    1 year / 2 years / 3 years / 4 years   (max 4)
-  Quarterly: 1Q … 16Q                               (max 16)
-
-→ App fetches all data, exports all 7 sheets, auto-opens Excel
-  (Sheet 7 included if OPENAI_API_KEY present, skipped silently if not)
-```
-
----
-
-## Note to Mentor
-
-After every phase sign-off, update the phase status table in `docs/RFC.md` and update the "Current Position" section in this file (`docs/RESUME_PROMPT.md`).
-
----
-
-## GitHub
-
-Repository: https://github.com/knbeltz/inzich
-
-When Kai says "commit and push", stage all changed project files, write a descriptive commit message summarizing the phase work done, and push to `main`. Do not include a Co-Authored-By line in commit messages.
+| 1 | ✅ Complete | Project Setup |
+| 2 | ✅ Complete | Configuration (`config/settings.py`) |
+| 3 | ✅ Complete | Logging (`utils/logger.py`) |
+| 4 | ✅ Complete | UI Foundation (`splash.py`, `menus.py`, `main.py`) |
+| 5 | ✅ Complete | Input Handling (`ui/prompts.py`) |
+| 6 | ✅ Complete | Main App Loop Update |
+| 7 | ✅ Complete | Yahoo Finance Client |
+| 8 | ✅ Complete | Company Search + Validation |
+| 9 | ✅ Complete | Data Models |
+| 10 | ✅ Complete | Data Parsers |
+| 11 | ✅ Complete | Period Selection UI |
+| 12 | ✅ Complete | Excel Exporter |
+| 13 | ✅ Complete | AI Summary |
+| 14 | ✅ Complete | Company Report Workflow |
+| 15 | ⬜ | Documentation |
+| 16 | ⬜ | Caching Layer |
+| 17 | ⬜ | Error Handling + Polish |
+| 18 | ⬜ | Unit Tests |
+| 19 | ⬜ | Integration Tests |

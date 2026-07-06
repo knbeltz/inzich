@@ -1,3 +1,5 @@
+"""Exports the AI research summary as a .txt file."""
+
 import os
 import platform
 import subprocess
