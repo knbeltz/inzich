@@ -4,6 +4,8 @@ A Python terminal app that fetches financial data for any publicly traded compan
 
 ![Inzich Demo](docs/demo.png)
 
+🎥 [Watch the demo video](https://youtu.be/2bTGx-WJP98)
+
 ---
 
 ## What It Does
